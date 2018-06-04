@@ -1,0 +1,82 @@
+---
+layout: post
+title:  "[Project Postmortem] Content Stealer"
+categories: projects postmortem
+---
+<p>
+    In this post I will discuss what I wanted to accomplish, how I did it, and what I could've improved
+    about one of my projects, which in this case is my content stealing bot. This post is more of a build guide
+    of what I did rather than a readme.md file, so I can focus more on how I feel about the project rather
+    than on the instructions on how to use it.
+</p>
+<h2>Objective</h2>
+<p>
+    The objective of this project was to create a bot which automatically ""generated"" content so it could gather
+    popularity all on it's own. I always found automation to be interesting, and the idea of automatically gathering
+    internet points had a fun appeal to it. Because I couldn't think of something clever for the bot to
+    generate, I decided to have it steal images instead, and then post it as it's own, like many
+    people on the internet already do. Specifically, the script would take cat images from a cat subreddit and post it in twitter.
+</p>
+<h2>Design</h2>
+<p>
+    To achieve this objective, I first decided to run the code on a Raspberry Pi Zero W, so that the bot could be on
+    even when my computer wasn't currently. I wrote the bot's code in NodeJS, because deadlines were a couple of weeks away,
+    and I wanted to write code as quickly as I could so I could focus on the deadlines. It also helped that there was a convenient twitter library for NodeJS. In retrospect, the choice of NodeJS
+    doesn't really make sense, since the script couldve easily been done in a language like Python, Java, or almost any language.
+    Choosing something like Javascript also allows for a considerable amount of bugs to appear, and I'm fairly sure
+    it did for this project.
+</p>
+<p>
+    The script was made to make a HTTP GET request every so often to Reddit, and obtain a set amount of images.
+    The frequency of the GET requests and the amount of images could be configured by the end user in a seperate file.
+    Once the images were obtained , each image was then posted to Twitter via the Twitter API through the Twit library.
+</p>
+<p>
+    The script would then repeat the process every so often indefinely until something broke (which it did many times).
+</p>
+<h2>What I got right</h2>
+<p>
+    What I felt proud of for this project was the fact that I retrieved images from reddit using a HTTP request instead of relying on a library to do it for me.
+    To much of Reddit's credit, however, they did make this proccess fairly simple. All that needed was a GET request to the site, which
+    would then return data that could be converted into JSON containing all the Reddit posts' information, including image URLs. The script would then parse the JSON for the image URLs. The image URLs would then be downloaded as images,
+    which would be stored away in a folder for later use.
+
+    Another thing I felt that was good about this project was how I allowed the script to be easily configured bu changing values in the constants.js file.
+    This allowed the project to grab images from different subreddits at varying time intervals with the change of a few lines of code. 
+</p>
+<h2>What I got wrong</h2>
+<p>
+    For a quick script that was put together there is a lot I can say that went wrong. Firstly the code was written in Javascript, which does not
+    serve the project better than other languages. This is because the main appeal of NodeJS is asynchronious I/O, which allows for large scale projects to run faster.
+    However, for a project that only makes at most a couple of requests per hour, there is no intrinsic benefit to use NodeJS. On top of this, running NodeJs code
+    on a Raspberry Pi Zero requires more steps to run than python code. 
+</p>
+<p>
+    The biggest issues in my code mostly involves the consideration (or lack there of) of special edge cases. While I was retrieving images from r/cats, a subreddit
+    that primary consists of worksafe jpegs, what would happen if a post on r/cats was instead a text post or a gif or a png or NSFW? While I took care of
+    handling NSFW content and other file types in reddit postings, it really should be pointed out that assumptions need to made as few times as possible when 
+    using reddit as a content source, since the primary curation method is by people rather than a strict rule set. To illustrate, my bot crashed every night because
+    my bot wanted 10 posts per hour, but there were often less than 10 posts per hour on r/cats during the night.
+</p>
+<p>
+    Another thing I got wrong was trying to run the script on my Raspberry Pi. While running the script on my Raspberry Pi isn't inherently bad, I didn't set up
+    the Raspberry Pi to be very robust. For example, I have to SSH into my Raspberry Pi and run the code in the CLI everytime it boots because I didn't know how to create shell scripts.
+    This was a huge pain whenever it crashed since I would have to manually boot it back up.  
+</p>
+<h2>What I should do going forwards</h2>
+<p>
+    My biggest takeaway is that bots (depending on their complexity) need considerable amounts of time to develop, and can't simply be hacked together, since
+    they basically run 24/7 and will likely encounter a multitude of edge cases. Going forwards I might rewrite the script in python and properly implement a
+    shell script so the code will run on boot. Another thing I should do is have a error file the bot can log to so debugging won't as confusing. One last thing
+    I need to implement is for the code to handle being offline, in the case that wifi if down for whatever reason.
+</p>
+<h2>Useful Things I learned</h2>
+<p>
+    Aside from learning how to parse JSON the biggest things I learned were the technical aspects of running code on a raspberry pi for prolonged durations.
+    The technical aspects are as follows:
+    <ul>
+        <li>If you're using ssh, you need to use the "screen" command on the pi so it wont exit when you halt the ssh.</li>
+        <li>You need to add the --max-old-space-size=200 parameter so garbage collection will start at 200mB and (hopefully) won't overflow the Pi's ram. This value may need to be tweaked depending on how the Pi operates.</li>
+        <li>The Rasberry Pi Zero uses ARM v6, meaning you cannot simply apt-get node, as the node distribution given through apt supports only the Raspberry Pi 3. Download the specific ARM v6 version through the node site.</li>
+    </ul>
+</p>

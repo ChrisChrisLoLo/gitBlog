@@ -16,7 +16,7 @@
 title: "[weebsite]"
 email: dud@email.org
 description: >- # this means to ignore newlines until "baseurl:"
-  A blog where I talk about some of my projects and other things.
+  A cool technical blog for cool technical people.
 baseurl: "/gitBlog" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: felineFlood
